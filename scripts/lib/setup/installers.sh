@@ -183,6 +183,13 @@ function install_homebrew_if_needed() {
 function install_android_sdk() {
   if is_macos; then
     brew_cask_install android-sdk
+    if [ -z "$ANDROID_SDK_ROOT" ]; then
+      local target_path='/usr/local/share/android-sdk'
+      echo "export ANDROID_HOME=$target_path" >> ~/.bash_profile
+      echo "export ANDROID_SDK_ROOT=$target_path" >> ~/.bash_profile
+      export ANDROID_HOME=$target_path
+      export ANDROID_SDK_ROOT=$target_path
+    fi
   elif is_linux; then
     install_android_sdk_linux
   fi
