@@ -243,11 +243,11 @@ function install_nvm() {
   if ! program_version_exists 'nvm' "$required_version"; then
     cecho "@b@blue[[+ Installing nvm $required_version]]"
 
+    [ -f "~/.bash_profile" ] || touch ~/.bash_profile
+
     sudo apt install -y build-essential libssl-dev
     source scripts/3rd-party/nvm/${required_version}/install.sh
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+    load_nvm_if_available
   else
     cecho "+ nvm already installed... skipping."
   fi
@@ -374,6 +374,7 @@ function use_android_sdk() {
     local ANDROID_PLATFORM_VERSION=$(toolversion ANDROID_PLATFORM_VERSION)
     touch ~/.android/repositories.cfg
     echo y | sdkmanager "platform-tools" "build-tools;$ANDROID_BUILD_TOOLS_VERSION" "platforms;$ANDROID_PLATFORM_VERSION"
+    sdkmanager --licenses
   else
     local _docUrl="https://status.im/build_status/"
     cecho "@yellow[[ANDROID_SDK_ROOT environment variable not defined, please install the Android SDK.]]"
@@ -383,22 +384,24 @@ function use_android_sdk() {
 
     exit 1
   fi
+
+  source scripts/generate-keystore.sh
 }
 
 function install_android_ndk() {
   if grep -Fq "ndk.dir" $_localPropertiesPath; then
     cecho "@green[[Android NDK already declared.]]"
   else
+    local ANDROID_NDK_VERSION=$(toolversion android-ndk)
     local _ndkParentDir=~/Android/Sdk
     mkdir -p $_ndkParentDir
     cecho "@cyan[[Downloading Android NDK.]]"
 
-    PLATFORM="linux"
-    if [ "$(uname)" == "Darwin" ]; then # we run osx
+    local PLATFORM="linux"
+    if is_macos; then
         PLATFORM="darwin"
     fi
 
-    local ANDROID_NDK_VERSION=$(toolversion ANDROID_NDK_VERSION)
     downloadUrl . android-ndk.zip https://dl.google.com/android/repository/android-ndk-$ANDROID_NDK_VERSION-$PLATFORM-x86_64.zip && \
       cecho "@cyan[[Extracting Android NDK to $_ndkParentDir.]]" && \
       unzip -q -o ./android-ndk.zip -d "$_ndkParentDir" && \

@@ -202,7 +202,7 @@ function load_rvm_if_available() {
 ###############
 
 function load_nvm_if_available() {
-  [ -f ~/.nvm/nvm.sh ] && source ~/.nvm/nvm.sh
+  [ -f ~/.nvm/nvm.sh ] && chmod +x ~/.nvm/nvm.sh && source ~/.nvm/nvm.sh
 }
 
 function nvm_installed() {
